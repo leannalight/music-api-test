@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { getSong } = require('../controllers/song.controller');
+const { getSongs,
+        getSongById,
+        updateSong,
+        deleteSong } = require('../controllers/song.controller');
 
-// router.post('/', );
-// router.get('/', );
-router.get('/:id', getSong);
-// router.delete('/:id', );
+router.get('/', getSongs);
+router.get('/:id', getSongById);
+router.put('/edit/:id', updateSong);
+router.delete('/delete/:id', deleteSong);
 
 
 module.exports = router;

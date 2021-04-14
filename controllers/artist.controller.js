@@ -3,6 +3,7 @@ const Song = require('../models/song');
 const Sequelize = require('sequelize');
 const { Op } = Sequelize;
 
+// получить всех исполнителей / по части названия
 module.exports.getArtists = (req, res) => {
   let filter = {};
   let { q } = req.query;
@@ -16,16 +17,24 @@ module.exports.getArtists = (req, res) => {
       }
     };
   }
-  Artist.findAll(filter).then((artists) => {
-    res.json(artists);
+  Artist.findAll(filter).then((data) => {
+    res.render('artists.hbs', {
+      artists: data
+    });
   });
 };
 
+// создать запись об исполнителе
 module.exports.createArtist = (req, res) => {
-  Artist.create({
-    name: req.body.name
-  }).then((artist) => {
-    res.json(artist);
+
+  if(!req.body) return res.status(400).send();
+
+  Artist
+    .create({
+      name: req.body.name
+    })
+    .then(() => {
+      res.redirect('/artists');
   }, (validation) => {
       res.status(422).json({
         errors: validation.errors.map((error) => {
@@ -38,6 +47,21 @@ module.exports.createArtist = (req, res) => {
     });
 };
 
+// module.exports.getArtistById = (req, res) => {
+//   let { id } = req.params;
+
+//   Artist.findByPk(id, {
+//     include: [Song]
+//   }).then((artist) => {
+//     if (artist) {
+//       res.json(artist);
+//     } else {
+//       res.status(404).send();
+//     }
+//   });
+// };
+
+// получить запись об исполнителе по id
 module.exports.getArtistById = (req, res) => {
   let { id } = req.params;
 
@@ -45,51 +69,81 @@ module.exports.getArtistById = (req, res) => {
     include: [Song]
   }).then((artist) => {
     if (artist) {
-      res.json(artist);
+      res.render('edit.hbs', {
+        artist
+      });
     } else {
       res.status(404).send();
     }
   });
 };
 
+// удалить запись об исполнителе
 module.exports.deleteArtist = (req, res) => {
-  let { id } = req.params;
+  const artistId = req.params;
 
-  Artist
-    .findByPk(id)
-    .then((artist) => {
-      if (artist) {
-        return artist.setSongs([]).then(() => {
-          return artist.destroy();
-        });
-      } else {
-        return Promise.reject();
-      }
-    })
+  Artist.destroy({ where: {id: artistId} })
     .then(() => {
-      res.status(204).send();
-    }, () => {
-      res.status(404).send();
-    });
-};
+      res.redirect('/artists');
+    })
+    .catch((error) => res.status(400).send(error))
+}
 
+// изменить запись об исполнителе
 module.exports.updateArtist = (req, res) => {
+
+  if(!req.body) return res.status(400).send();
+
+  return Artist
+    .update({
+      name: req.body.name },
+      { where: { id: req.body.id } })
+        .then(() => {
+          res.redirect('/artists');
+        })
+        .catch((error) => res.status(400).send(error));
+}
+
+// добавить песню исполнителю
+module.exports.addSong = (req, res) => {
   let { id } = req.params;
 
   Artist
     .findByPk(id)
     .then((artist) => {
-      if (!artist) {
+      if(!artist) {
         return res.status(404).send({
-          message: 'Artist is not found'
+          message: 'Artist not found',
         });
       }
-      return artist
-        .update({
-          name: req.body.name || artist.name
-        })
-        .then(() => res.status(200).send(artist))
-        .catch((error) => res.status(400).send(error));
-    })
-    .catch((error) => res.status(400).send(error));
-};
+      return artist.createSong({
+        title: req.body.title
+      })
+      .then((artist) => res.status(201).send(artist))
+      })
+      .catch((error) => res.status(400).send(error));
+}
+
+// получить все песни определенного исполнителя
+module.exports.getSongs = (req, res) => {
+  let { id } = req.params;
+
+  Artist
+    .findByPk(id)
+    .then((artist) => {
+      if(!artist) {
+        return res.status(404).send({
+          message: 'Artist not found',
+        });
+      }
+
+    return artist.getSongs()
+      .then((songs) => {
+        for (let i = 0; i < songs.length; i++) {
+          console.log(songs[i].title, " - ", artist.name);
+          return res.status(200).send(songs);
+        }
+      })
+      .catch((error) => res.status(400).send(error))
+    }).catch((error) => res.status(400).send(error))
+}

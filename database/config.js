@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 
-module.exports = new Sequelize('musicdb3', 'postgres', '567789', {
+module.exports = new Sequelize('musicdb1', 'postgres', '567789', {
   dialect: 'postgres',
 
   pool: {

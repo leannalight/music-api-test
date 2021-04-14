@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Список исполнителей</title>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <h1>Список исполнителей</h1>
+    <p><a href="/artists/create">Добавить исполнителя</a></p>
+    <table>
+        <tr><th>Имя</th></tr>
+        {{#each artists}}
+            <tr>
+                <td>{{this.name}}</td>
+                <td>
+                    <a href="/artists/edit/{{this.id}}">Edit</a>|
+                    <form action="/artists/delete/{{this.id}}" method="POST" style="display:inline;">
+                        <input type="submit" value="Delete" />
+                    </form>
+                </td>
+            </tr>
+        {{/each}}
+    </table>
+</body>
+<html>
