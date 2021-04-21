@@ -18,11 +18,16 @@ module.exports.getArtists = (req, res) => {
     };
   }
   Artist.findAll(filter).then((data) => {
-    res.render('artists.hbs', {
+    res.render('artists', {
       artists: data
     });
   });
 };
+
+// добавить исполнителя
+module.exports.addArtist = (req, res) => {
+  res.render('create');
+}
 
 // создать запись об исполнителе
 module.exports.createArtist = (req, res) => {
@@ -47,61 +52,44 @@ module.exports.createArtist = (req, res) => {
     });
 };
 
-// module.exports.getArtistById = (req, res) => {
-//   let { id } = req.params;
-
-//   Artist.findByPk(id, {
-//     include: [Song]
-//   }).then((artist) => {
-//     if (artist) {
-//       res.json(artist);
-//     } else {
-//       res.status(404).send();
-//     }
-//   });
-// };
-
 // получить запись об исполнителе по id
 module.exports.getArtistById = (req, res) => {
-  let { id } = req.params;
+  const artistId = req.params.id;
 
-  Artist.findByPk(id, {
-    include: [Song]
-  }).then((artist) => {
-    if (artist) {
-      res.render('edit.hbs', {
-        artist
+  Artist.findAll({ where: { id: artistId } })
+    .then((data) => {
+      res.render('edit', {
+        artist: data[0]
       });
-    } else {
-      res.status(404).send();
-    }
-  });
-};
-
-// удалить запись об исполнителе
-module.exports.deleteArtist = (req, res) => {
-  const artistId = req.params;
-
-  Artist.destroy({ where: {id: artistId} })
-    .then(() => {
-      res.redirect('/artists');
     })
-    .catch((error) => res.status(400).send(error))
-}
+    .catch((error) => res.status(404).send(error));
+};
 
 // изменить запись об исполнителе
 module.exports.updateArtist = (req, res) => {
 
   if(!req.body) return res.status(400).send();
 
-  return Artist
-    .update({
-      name: req.body.name },
-      { where: { id: req.body.id } })
-        .then(() => {
-          res.redirect('/artists');
-        })
-        .catch((error) => res.status(400).send(error));
+  const artistName = req.body.name;
+  const artistId = req.body.id;
+
+  Artist
+    .update({ name: artistName }, { where: { id: artistId } })
+      .then(() => {
+        res.redirect('/artists');
+      })
+      .catch((error) => res.status(400).send(error));
+}
+
+// удалить запись об исполнителе
+module.exports.deleteArtist = (req, res) => {
+  const artistId = req.params.id;
+
+  Artist.destroy({ where: {id: artistId} })
+    .then(() => {
+      res.redirect('/artists');
+    })
+    .catch((error) => res.status(400).send(error))
 }
 
 // добавить песню исполнителю

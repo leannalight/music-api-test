@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { createArtist,
+const { addArtist,
+        createArtist,
         getArtists,
         getArtistById,
         deleteArtist,
@@ -11,16 +12,14 @@ const { createArtist,
 const bodyParser = require('body-parser');
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 
-router.get('/create', function(req, res){
-  res.render("create.hbs");
-});
-
+router.get('/create', addArtist);
 router.post('/create', urlencodedParser, createArtist);
 router.get('/', getArtists);
+// получаем объект по id для редактирования
 router.get('/edit/:id', getArtistById);
-router.get('/:id', getArtistById);
-router.put('/edit/:id', urlencodedParser, updateArtist);
-router.delete('/delete/:id', deleteArtist);
+// обновляем данные в БД
+router.post('/edit', urlencodedParser, updateArtist);
+router.post('/delete/:id', deleteArtist);
 
 // добавить песню исполнителю
 router.post('/add/:id', addSong);
